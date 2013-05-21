@@ -1,4 +1,5 @@
 require 'colored'
+require './pieces.rb'
 
 class Game
 
@@ -12,18 +13,72 @@ class Board
     set_starting_pieces
   end
 
+  def color_at(location)
+      selected_square = self[location]
+      if selected_square
+        selected_square.color
+      else
+        nil
+      end
+  end
+  def on_board?(location)
+    x,y = location
+    x.between?(0,7) && y.between?(0,7)
+  end
+
   def set_starting_pieces
     add_pawns
+    add_knights
+    add_rooks
+    add_bishops
+    add_royalty
+  end
+
+  def move(from,to)
+
   end
 
   def add_pawns
-    @rows[1].each_with_index do |square, index|
-      square = Pawn.new(:black, [1, index])
+    [1,6].each do |row_num|
+      @rows[row_num].each_index do |index|
+        color = row_num < 4 ?  :black : :white
+        @rows[row_num][index] = Pawn.new(color, [row_num, index],self)
+      end
     end
+  end
 
-    @rows[6].each_with_index do |square, index|
-      square = Pawn.new(:white, [6, index])
+  def add_knights
+    [0,7].each do |row_num|
+      [1,6].each do |col_num|
+        color = row_num < 4 ?  :black : :white
+        @rows[row_num][col_num] = Knight.new(color, [row_num, col_num],self)
+      end
     end
+  end
+
+  def add_rooks
+    [0,7].each do |row_num|
+      [0,7].each do |col_num|
+        color = row_num < 4 ?  :black : :white
+        @rows[row_num][col_num] = Rook.new(color, [row_num, col_num],self)
+      end
+    end
+  end
+
+  def add_bishops
+    [0,7].each do |row_num|
+      [2,5].each do |col_num|
+        color = row_num < 4 ?  :black : :white
+        @rows[row_num][col_num] = Bishop.new(color, [row_num, col_num],self)
+      end
+    end
+  end
+
+  def add_royalty
+    @rows[0][3] = King.new(:black, [0, 3],self)
+    @rows[7][4] = King.new(:white, [7, 4],self)
+    @rows[0][4] = Queen.new(:black, [0, 4],self)
+    @rows[7][3] = Queen.new(:white, [7, 3],self)
   end
 
   def []=(pos, piece)
@@ -31,68 +86,64 @@ class Board
     @rows[x][y] = piece
   end
 
-  def [](x,y)
+  def [](pos)
     x, y = pos
     @rows[x][y]
   end
 
   def display
-
-    @rows.each do |row|
-      puts row.inspect
+    puts " a b c d e f g h"
+    @rows.each_with_index do |row,index|
+      print "#{index}"
+      row.each do |space|
+        print space.nil? ? "_" : space.to_s
+        print " "
+      end
+      puts "\n"
     end
-
+    puts " a b c d e f g h"
   end
+
+
+  def display_possible(from)
+    from_piece = self[from]
+
+    possible_moves = from_piece.possible_moves
+
+
+    puts " a b c d e f g h"
+    @rows.each_with_index do |row,x|
+      print "#{x}"
+      row.each_with_index do |space,y|
+        if possible_moves.include?([x,y])
+          if space.nil?
+            print "_".gold
+          else
+            print space.name.gold
+          end
+        elsif space.nil?
+          print "_"
+        else
+          print space.to_s
+        end
+        print " "
+      end
+      puts "\n"
+    end
+    puts " a b c d e f g h"
+  end
+
 end
 
-b = Board.new
-b.display
+
 
 class HumanPlayer
 
 end
 
-class Piece
-  attr_accessor :color,:location, :taken, :name
-
-  def initialize(color,location,name)
-    @taken = false
-    @color = color
-    @location = location
-    @name = name
-  end
-
-  def taken?
-    @taken
-  end
-
-  def to_s
-    if @color == :white
-      @name.white
-    else
-      @name.green
-    end
-  end
-
-end
-
-class SlidingPiece < Piece
-
-end
-
-class SteppingPiece < Piece
-
-end
-
-class Pawn < Piece
-  attr_accessor :first_move
-
-  def initialize(color,location)
-    super(color,location, "P")
-
-    @first_move = true
-  end
 
 
-
-end
+b = Board.new
+# b[location]
+b.display
+p b.color_at([3,1])
