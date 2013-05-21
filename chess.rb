@@ -2,6 +2,14 @@ require 'colored'
 require './pieces.rb'
 
 class Game
+  attr_accessor :board, :player
+
+  def get_move
+    from = player.get_from
+    @board.display_possible(from)
+    to = player.get_to(@board[from].possible_moves)
+    @board.move(from,to)
+  end
 
 end
 
@@ -11,6 +19,7 @@ class Board
   def initialize
     @rows = Array.new(8) { Array.new(8) }
     set_starting_pieces
+    return nil
   end
 
   def color_at(location)
@@ -106,6 +115,7 @@ class Board
 
 
   def display_possible(from)
+
     from_piece = self[from]
 
     possible_moves = from_piece.possible_moves
@@ -117,9 +127,9 @@ class Board
       row.each_with_index do |space,y|
         if possible_moves.include?([x,y])
           if space.nil?
-            print "_".gold
+            print "_".yellow
           else
-            print space.name.gold
+            print space.name.yellow
           end
         elsif space.nil?
           print "_"
@@ -138,12 +148,41 @@ end
 
 
 class HumanPlayer
+  def initialize
+  end
+
+  def get_input
+    begin
+      input = gets.chomp
+      raise ArgumentError.new("You didn't put in a comma. Use (1,3) format.") unless input.include?(",")
+      input = input.split(",").map(&:strip)
+
+      if(input[0] =~ /\D/ || input[1] =~ /\D/)
+        raise ArgumentError.new("You didn't input a number")
+      end
+
+      input.map!(&:to_i)
+
+      if !input[0].between?(0,7) || !input[1].between?(0,7)
+        raise ArgumentError.new("You didn't input a space on the board")
+      end
+      return input
+    rescue ArgumentError => e
+      puts e.message
+      retry
+    end
+  end
+
+  def get_from
+    puts "Which piece do you want to move? i.e. (0,3)"
+    get_input
+  end
+
+  def get_to
+    puts "Where you want to move? i.e. (0,3)"
+    get_input
+  end
 
 end
 
-
-
-b = Board.new
 # b[location]
-b.display
-p b.color_at([3,1])
