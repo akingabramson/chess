@@ -22,7 +22,8 @@ class Piece
   end
 
   def check_moves
-    possible_moves.select {|move| @board[move].name == "K"}
+
+    possible_moves.select {|move| @board[move].is_a?(King)}
   end
 
 end
@@ -103,9 +104,6 @@ class Pawn < Piece
     spaces
   end
 
-  def check_moves
-    kill_moves.select {|move| @board[move].name == "K"}
-  end
 
   def possible_moves
     spaces = []

@@ -16,9 +16,22 @@ class Game
     @player1= player1
     @player2 = player2
     @board = board
+
+    player = @player1
+    until check_mate?
+      get_move(player)
+      player = other_player
+    end
     #start play loop
-    #
-    get_move(player1)
+    #until check_mate?
+    #get_move
+    #move( board
+    #player = other_player
+
+  end
+
+  def other_player(player)
+    player == @player1 ? @player2 : @player1
   end
 
   def get_move(player)
@@ -84,32 +97,35 @@ class Board
 #     end
 
     if self[to].nil?
-      self[to] = self[from].dup
+      self[to] = self[from]
     else
       self[to].taken = true
-      self[to] = self[from].dup
+      self[to] = self[from]
     end
-      self[from] = nil
+    self[to].location = to
+    self[from] = nil
   end
 
   def over?
 
   end
-  def check?(color)
-    possible_checks = []
-
-    @rows.each_with_index do |row,x|
-      row.each_with_index do |space,y|
-        next if space.nil?
-       if self.color_at([x,y]) == color
-         possible_checks += space.check_moves
+  def in_check?(attacking_color)
+    possible_moves = []
+    king_spot = []
+    @rows.each_with_index do |row, x|
+      row.each_with_index do |space, y|
+       next if space.nil?
+       king_spot = [x,y] if space.is_a?(King) && space.color != attacking_color
+       if space.color == attacking_color
+         possible_moves += space.possible_moves
        end
       end
     end
 
-    !possible_checks.empty?
+    possible_moves.include?(king_spot)
 
   end
+
   def add_pawns
     [1,6].each do |row_num|
       @rows[row_num].each_index do |index|
