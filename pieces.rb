@@ -88,7 +88,7 @@ class Pawn < Piece
   attr_accessor :first_move
 
   def initialize(color,location,board)
-    super(color,location, "P",board)
+    super(color,location, "\u265F",board)
     @first_move = true
   end
 
@@ -139,18 +139,18 @@ end
 class Knight < SteppingPiece
 
   def initialize(color,location,board)
-    super(color,location, "K",board)
+    super(color, location, "\u265E", board)
   end
 
   def possible_moves
-    super([[2,1], [2,-1], [1,2], [1,-2], [-1,2], [-1,-2], [-2,1], [-2,-1]])
+    super([[2, 1], [2, -1], [1, 2], [1, -2], [-1, 2], [-1, -2], [-2, 1], [-2, -1]])
   end
 
 end
 class King < SteppingPiece
 
   def initialize(color,location,board)
-    super(color,location, "*",board)
+    super(color,location, "\u265A",board)
   end
   def possible_moves
     super([[0,1], [0,-1], [-1,1], [-1,0], [-1,-1], [1,1], [1,0], [1,-1]])
@@ -162,7 +162,7 @@ end
 class Rook < SlidingPiece
 
   def initialize(color,location,board)
-    super(color,location, "R",board)
+    super(color,location, "\u265C",board)
   end
 
   def possible_moves
@@ -173,7 +173,7 @@ end
 class Bishop < SlidingPiece
 
   def initialize(color,location,board)
-    super(color,location, "B",board)
+    super(color,location, "\u265D",board)
   end
 
   def possible_moves
@@ -184,7 +184,7 @@ end
 class Queen < SlidingPiece
 
   def initialize(color,location,board)
-    super(color,location, "Q",board)
+    super(color,location, "\u265B",board)
   end
   def possible_moves
     super([[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]])
