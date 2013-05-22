@@ -1,13 +1,15 @@
 require 'colored'
 require './pieces.rb'
-
+require './human_player.rb'
+# require 'debugger'
 class Game
   attr_accessor :board, :player1, :player2
 
   def self.human_vs_human
     b = Board.new
-    h1 = HumanPlayer.new
-    h2 = HumanPlayer.new
+    b.setup
+    h1 = HumanPlayer.new(:white)
+    h2 = HumanPlayer.new(:black)
     g = Game.new
     g.play(h1,h2,b)
   end
@@ -18,15 +20,17 @@ class Game
     @board = board
 
     player = @player1
-    until check_mate?
+    check_mate = false
+    until check_mate
       get_move(player)
-      player = other_player
+      player = other_player(player)
+      check_mate = @board.check_mate?(player.color)
+      if @board.in_check?(other_player(player).color) && !check_mate
+        puts "Check!"
+      end
     end
-    #start play loop
-    #until check_mate?
-    #get_move
-    #move( board
-    #player = other_player
+
+    puts "Check Mate!"
 
   end
 
@@ -55,10 +59,8 @@ end
 class Board
   attr_accessor :rows
 
-  def initialize
-    @rows = Array.new(8) { Array.new(8) }
-    set_starting_pieces
-    return nil
+  def initialize(rows = Array.new(8) { Array.new(8) })
+    @rows = rows
   end
 
   def inspect
@@ -66,19 +68,19 @@ class Board
   end
 
   def color_at(location)
-      selected_square = self[location]
-      if selected_square
-        selected_square.color
-      else
-        nil
-      end
+    selected_square = self[location]
+    if selected_square
+      selected_square.color
+    else
+      nil
+    end
   end
   def on_board?(location)
     x,y = location
     x.between?(0,7) && y.between?(0,7)
   end
 
-  def set_starting_pieces
+  def setup
     add_pawns
     add_knights
     add_rooks
@@ -106,9 +108,48 @@ class Board
     self[from] = nil
   end
 
-  def over?
-
+  def rows
+    @rows.map(&:dup)
   end
+
+  def dup
+    board_new = Board.new(rows)
+    board_new.rows.each do |row|
+      row.each do |piece|
+        piece.board = board_new unless piece.nil?
+      end
+    end
+    board_new
+  end
+
+  def check_mate?(attacked_color)
+    @rows.each_with_index do |row, x|
+      row.each_with_index do |piece, y|
+       next if piece.nil?
+       return false if piece_can_block?(piece, attacked_color,[x,y])
+      end
+    end
+    true
+  end
+
+
+  def piece_can_block?(piece, attacked_color,from)
+    if piece.color == attacked_color
+      piece.possible_moves.each do |to|
+        board_copy = self.dup
+        board_copy.move(from,to)
+        board_copy.in_check?(other_color(attacked_color))
+        return true if !board_copy.in_check?(other_color(attacked_color))
+      end
+    end
+    false
+  end
+
+  def other_color(color)
+    color == :black ? :white : :black
+  end
+
+
   def in_check?(attacking_color)
     possible_moves = []
     king_spot = []
@@ -121,9 +162,7 @@ class Board
        end
       end
     end
-
     possible_moves.include?(king_spot)
-
   end
 
   def add_pawns
@@ -225,52 +264,5 @@ class Board
 end
 
 
-
-class HumanPlayer
-  def initialize
-  end
-
-  def get_input
-    begin
-      input = gets.chomp
-      raise ArgumentError.new("You didn't put in a comma. Use (1,3) format.") unless input.include?(",")
-      input = input.split(",").map(&:strip)
-
-      if(input[0] =~ /\D/ || input[1] =~ /\D/)
-        raise ArgumentError.new("You didn't input a number")
-      end
-
-      input.map!(&:to_i)
-
-      if !input[0].between?(0,7) || !input[1].between?(0,7)
-        raise ArgumentError.new("You didn't input a space on the board")
-      end
-      return input
-    rescue ArgumentError => e
-      puts e.message
-      retry
-    end
-  end
-
-  def get_from
-    puts "Which piece do you want to move? i.e. (0,3)"
-    get_input
-  end
-
-  def get_to(possible_spaces)
-    puts "Where you want to move? i.e. (0,3)"
-    begin
-      to = get_input
-      unless possible_spaces.include?(to)
-        raise ArgumentError.new("Piece cannot move there.")
-      end
-    rescue ArgumentError => e
-      puts e.message
-      retry
-    end
-    to
-  end
-
-end
 
 # b[location]
