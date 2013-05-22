@@ -1,12 +1,15 @@
 class Piece
-  attr_accessor :color,:location, :taken, :name, :board
+  attr_accessor :color,:location, :name, :board
 
   def initialize(color,location,name,board)
-    @taken = false
     @color = color
     @location = location
     @name = name
     @board = board
+  end
+
+  def deep_dup
+
   end
 
   def taken?
@@ -43,10 +46,11 @@ class SlidingPiece < Piece
     new_loc = [(x+dx),(y+dy)]
 
     return [] unless @board.on_board?(new_loc)
+    return [] if !@board[new_loc].nil? && @board[new_loc].color == @color
 
     if @board[new_loc].nil?
       return [new_loc] + generate_relative_spaces(new_loc,transform)
-    elsif !@board[new_loc].nil? && @board.color_at(new_loc) != @color
+    elsif !@board[new_loc].nil? && @board[new_loc].color != @color
       return [new_loc]
     else
       return []
@@ -65,7 +69,9 @@ class SteppingPiece < Piece
       potential_space = [(x+dx),(y+dy)]
 
       if @board.on_board?(potential_space)
-        if @board.color_at(potential_space) != @color
+        if @board[potential_space].nil?
+          spaces << potential_space
+        elsif @board[potential_space].color != @color
           spaces << potential_space
         end
       end

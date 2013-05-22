@@ -21,6 +21,8 @@ class Game
 
     player = @player1
     check_mate = false
+    @board.display
+
     until check_mate
       get_move(player)
       player = other_player(player)
@@ -40,7 +42,9 @@ class Game
 
   def get_move(player)
     begin
+      # debugger
       from = player.get_from
+      raise ArgumentError.new("Can't move other player piece!") if @board[from].color != player.color
       possible_from = @board[from].possible_moves
       raise ArgumentError.new("Can't move from there.") if possible_from.count == 0
     rescue ArgumentError => e
@@ -48,7 +52,7 @@ class Game
       retry
     end
 
-    @board.display_possible(from)
+    @board.display_possible(possible_from)
     to = player.get_to(possible_from)
     @board.move(from,to)
     @board.display
@@ -57,7 +61,7 @@ class Game
 end
 
 class Board
-  attr_accessor :rows
+  attr_accessor :rows,
 
   def initialize(rows = Array.new(8) { Array.new(8) })
     @rows = rows
@@ -75,6 +79,7 @@ class Board
       nil
     end
   end
+
   def on_board?(location)
     x,y = location
     x.between?(0,7) && y.between?(0,7)
@@ -94,16 +99,11 @@ class Board
       raise ArgumentError.new("Cannot move from an empty space.")
     end
 
-    # unless self[from].possible_moves.include?(to)
-#       raise ArgumentError.new("Cannot move there.")
-#     end
-
-    if self[to].nil?
-      self[to] = self[from]
-    else
-      self[to].taken = true
-      self[to] = self[from]
+    unless self[from].possible_moves.include?(to)
+      raise ArgumentError.new("Cannot move there.")
     end
+
+    self[to] = self[from]
     self[to].location = to
     self[from] = nil
   end
@@ -114,9 +114,11 @@ class Board
 
   def dup
     board_new = Board.new(rows)
-    board_new.rows.each do |row|
-      row.each do |piece|
-        piece.board = board_new unless piece.nil?
+    board_new.rows.each_with_index do |row,x|
+      row.each_with_index do |piece,y|
+        next if piece.nil?
+        board_new[[x,y]] = piece.dup
+        board_new[[x,y]].board = board_new
       end
     end
     board_new
@@ -219,7 +221,7 @@ class Board
   end
 
   def display
-    puts " a b c d e f g h"
+    puts " 0 1 2 3 4 5 6 7"
     @rows.each_with_index do |row,index|
       print "#{index}"
       row.each do |space|
@@ -228,22 +230,18 @@ class Board
       end
       puts "\n"
     end
-    puts " a b c d e f g h"
+    puts " 0 1 2 3 4 5 6 7"
   end
 
 
-  def display_possible(from)
-
-    from_piece = self[from]
-
-    possible_moves = from_piece.possible_moves
+  def display_possible(possible_from)
 
 
-    puts " a b c d e f g h"
+    puts " 0 1 2 3 4 5 6 7"
     @rows.each_with_index do |row,x|
       print "#{x}"
       row.each_with_index do |space,y|
-        if possible_moves.include?([x,y])
+        if possible_from.include?([x,y])
           if space.nil?
             print "_".yellow
           else
@@ -258,11 +256,11 @@ class Board
       end
       puts "\n"
     end
-    puts " a b c d e f g h"
+    puts " 0 1 2 3 4 5 6 7"
   end
 
 end
 
-
+Game.human_vs_human
 
 # b[location]

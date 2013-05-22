@@ -30,12 +30,12 @@ class HumanPlayer
   end
 
   def get_from
-    puts "Which piece do you want to move? i.e. (0,3)"
+    puts "#{@color.to_s.capitalize}: Which piece do you want to move? i.e. (0,3)"
     get_input
   end
 
   def get_to(possible_spaces)
-    puts "Where you want to move? i.e. (0,3)"
+    puts "#{@color.to_s.capitalize}: Where you want to move? i.e. (0,3)"
     begin
       to = get_input
       unless possible_spaces.include?(to)
