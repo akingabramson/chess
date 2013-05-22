@@ -21,6 +21,10 @@ class Piece
     end
   end
 
+  def check_moves
+    possible_moves.select {|move| @board[move].name == "K"}
+  end
+
 end
 
 class SlidingPiece < Piece
@@ -58,9 +62,11 @@ class SteppingPiece < Piece
     relative_spaces.each do |rel_space|
       dx,dy = rel_space
       potential_space = [(x+dx),(y+dy)]
-      if @board.color_at(potential_space) != @color &&
-        @board.on_board?(potential_space)
-        spaces << potential_space
+
+      if @board.on_board?(potential_space)
+        if @board.color_at(potential_space) != @color
+          spaces << potential_space
+        end
       end
     end
     spaces
@@ -79,16 +85,33 @@ class Pawn < Piece
     @first_move = true
   end
 
-  def possible_moves
+  def kill_moves
     spaces = []
-    #if black *-1
     x, y = @location
 
-    #check for off board
-    one_ahead = [x+(1*direction),y]
     diag_left = [x+(1*direction),y+1]
     diag_right = [x+(1*direction),y-1]
     diagonals = [diag_left,diag_right]
+
+    diagonals.each do |diag|
+      if @board.color_at(diag) != @color &&
+        !@board.color_at(diag).nil? &&
+        @board.on_board?(diag)
+        spaces << diag
+      end
+    end
+    spaces
+  end
+
+  def check_moves
+    kill_moves.select {|move| @board[move].name == "K"}
+  end
+
+  def possible_moves
+    spaces = []
+    x, y = @location
+
+    one_ahead = [x+(1*direction),y]
 
     if @first_move
       two_ahead = [x+(2*direction),y]
@@ -99,20 +122,10 @@ class Pawn < Piece
         spaces << two_ahead
       end
     end
-
     if @board.color_at(one_ahead).nil? && @board.on_board?(one_ahead)
       spaces << one_ahead
     end
-
-    diagonals.each do |diag|
-      if @board.color_at(diag) != @color &&
-        !@board.color_at(diag).nil? &&
-        @board.on_board?(diag)
-        spaces << diag
-      end
-    end
-
-    spaces
+    spaces + kill_moves
   end
   def direction
     @color == :black ? 1 : -1

@@ -2,13 +2,39 @@ require 'colored'
 require './pieces.rb'
 
 class Game
-  attr_accessor :board, :player
+  attr_accessor :board, :player1, :player2
 
-  def get_move
-    from = player.get_from
+  def self.human_vs_human
+    b = Board.new
+    h1 = HumanPlayer.new
+    h2 = HumanPlayer.new
+    g = Game.new
+    g.play(h1,h2,b)
+  end
+
+  def play(player1,player2,board)
+    @player1= player1
+    @player2 = player2
+    @board = board
+    #start play loop
+    #
+    get_move(player1)
+  end
+
+  def get_move(player)
+    begin
+      from = player.get_from
+      possible_from = @board[from].possible_moves
+      raise ArgumentError.new("Can't move from there.") if possible_from.count == 0
+    rescue ArgumentError => e
+      puts e.message
+      retry
+    end
+
     @board.display_possible(from)
-    to = player.get_to(@board[from].possible_moves)
+    to = player.get_to(possible_from)
     @board.move(from,to)
+    @board.display
   end
 
 end
@@ -20,6 +46,10 @@ class Board
     @rows = Array.new(8) { Array.new(8) }
     set_starting_pieces
     return nil
+  end
+
+  def inspect
+    display
   end
 
   def color_at(location)
@@ -45,8 +75,41 @@ class Board
 
   def move(from,to)
 
+    if self[from].nil?
+      raise ArgumentError.new("Cannot move from an empty space.")
+    end
+
+    # unless self[from].possible_moves.include?(to)
+#       raise ArgumentError.new("Cannot move there.")
+#     end
+
+    if self[to].nil?
+      self[to] = self[from].dup
+    else
+      self[to].taken = true
+      self[to] = self[from].dup
+    end
+      self[from] = nil
   end
 
+  def over?
+
+  end
+  def check?(color)
+    possible_checks = []
+
+    @rows.each_with_index do |row,x|
+      row.each_with_index do |space,y|
+        next if space.nil?
+       if self.color_at([x,y]) == color
+         possible_checks += space.check_moves
+       end
+      end
+    end
+
+    !possible_checks.empty?
+
+  end
   def add_pawns
     [1,6].each do |row_num|
       @rows[row_num].each_index do |index|
@@ -178,9 +241,18 @@ class HumanPlayer
     get_input
   end
 
-  def get_to
+  def get_to(possible_spaces)
     puts "Where you want to move? i.e. (0,3)"
-    get_input
+    begin
+      to = get_input
+      unless possible_spaces.include?(to)
+        raise ArgumentError.new("Piece cannot move there.")
+      end
+    rescue ArgumentError => e
+      puts e.message
+      retry
+    end
+    to
   end
 
 end
