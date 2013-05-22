@@ -1,8 +1,8 @@
 
 
 class HumanPlayer
-
   attr_reader :color
+
   def initialize(color)
     @color = color
   end
@@ -30,6 +30,7 @@ class HumanPlayer
   end
 
   def get_from
+
     puts "#{@color.to_s.capitalize}: Which piece do you want to move? i.e. (0,3)"
     get_input
   end

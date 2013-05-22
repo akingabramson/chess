@@ -37,7 +37,7 @@ class Board
     board_copy = self.dup
     board_copy.move!(from, to)
     if board_copy.in_check?(other_color(self[from].color))
-      raise ArgumentError.new("Cannot move into check.")
+      raise MoveIntoCheckError.new("Cannot move into check.")
     end
     promote_pawn(from) if self[from].is_a?(Pawn) && (to[0] == 0 || to[0] == 7)
     self.move!(from, to)
@@ -101,7 +101,7 @@ class Board
   def piece_can_block?(piece, attacked_color,from)
     piece.possible_moves.each do |to|
       board_copy = self.dup
-      board_copy.move(from,to)
+      board_copy.move!(from,to)
       return true if !board_copy.in_check?(other_color(attacked_color))
     end
     false
@@ -218,4 +218,7 @@ class Board
     end
     print_colnumbers
   end
+end
+
+class MoveIntoCheckError < ArgumentError
 end

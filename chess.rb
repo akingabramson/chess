@@ -59,6 +59,9 @@ class Chess
     rescue ArgumentError => e
       p e.message
       retry
+    rescue MoveIntoCheckError => q
+      p q.message
+      get_move(player)
     end
     @board.display
   end
