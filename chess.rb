@@ -56,16 +56,21 @@ class Chess
     begin
       to = player.get_to(possible_from)
       @board.move(from, to)
+      @board.display
+    rescue MoveIntoCheckError => q
+      @board.display
+      p q.message
+      get_move(player)
     rescue ArgumentError => e
       p e.message
       retry
-    rescue MoveIntoCheckError => q
-      p q.message
-      get_move(player)
     end
-    @board.display
   end
 
 end
 
-Chess.human_vs_human
+b = Board.new
+b[[1,1]] = Pawn.new(:black, [1,1], b)
+b[[3,2]] = Pawn.new(:white, [3,2], b)
+b.move([1,1],[3,1])
+b.move([3,2],[2,1])

@@ -85,11 +85,17 @@ class SteppingPiece < Piece
 end
 
 class Pawn < Piece
-  attr_accessor :first_move
+  attr_accessor :move_count
 
   def initialize(color,location,board)
     super(color,location, "\u265F",board)
     @first_move = true
+    @move_count = 0
+  end
+
+  def location=(location)
+    @location = location
+    @move_count += 1
   end
 
   def kill_moves
@@ -107,9 +113,30 @@ class Pawn < Piece
         spaces << diag
       end
     end
+
     spaces
   end
 
+  def en_moves
+    en_spaces = []
+    x, y = @location
+
+    en_left = [x,y+1]
+    en_right = [x,y-1]
+    ens = [en_left,en_right]
+
+    ens.each do |en|
+      if !@board.last_piece_moved.nil? &&
+        @board.last_piece_moved.location == en &&
+        @board.last_piece_moved.move_count == 1 &&
+        @board[en].color != @color
+        en_spaces << [en[0]+(1*direction),en[1]]
+      end
+    end
+
+    en_spaces
+
+  end
 
   def possible_moves
     spaces = []
@@ -117,7 +144,7 @@ class Pawn < Piece
 
     one_ahead = [x+(1*direction),y]
 
-    if @first_move
+    if @move_count == 0
       two_ahead = [x+(2*direction),y]
 
       if @board.color_at(two_ahead).nil? &&
@@ -129,7 +156,7 @@ class Pawn < Piece
     if @board.color_at(one_ahead).nil? && @board.on_board?(one_ahead)
       spaces << one_ahead
     end
-    spaces + kill_moves
+    spaces + kill_moves + en_moves
   end
   def direction
     @color == :black ? 1 : -1

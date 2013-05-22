@@ -1,6 +1,7 @@
+#require 'debugger'
 
 class Board
-  attr_accessor :rows
+  attr_accessor :rows, :last_piece_moved
 
   def initialize(rows = Array.new(8) { Array.new(8) })
     @rows = rows
@@ -33,26 +34,46 @@ class Board
   end
 
   def move(from, to)
-
+    #debugger
     board_copy = self.dup
     board_copy.move!(from, to)
     if board_copy.in_check?(other_color(self[from].color))
       raise MoveIntoCheckError.new("Cannot move into check.")
     end
-    promote_pawn(from) if self[from].is_a?(Pawn) && (to[0] == 0 || to[0] == 7)
     self.move!(from, to)
+    promote_pawn(to) if self[to].is_a?(Pawn) && (to[0] == 0 || to[0] == 7)
   end
 
   def move!(from, to)
     raise ArgumentError.new("Cannot move from an empty space.") if self[from].nil?
     raise ArgumentError.new("Cannot move there.") unless self[from].possible_moves.include?(to)
 
+    if en_passant?(from, to)
+      self[[from[0], to[1]]] = nil
+    end
+
     self[to] = self[from]
     self[to].location = to
     self[from] = nil
+
+    @last_piece_moved = self[to]
   end
 
-  def promote_pawn(from)
+  def en_passant?(from, to)
+    jumped_pawn_loc = [from[0], to[1]]
+    if self[from].is_a?(Pawn) &&
+      from[1] != to[1] &&
+      self[to].nil? &&
+      !self[jumped_pawn_loc].nil? &&
+      self[jumped_pawn_loc].move_count == 1 &&
+      @last_piece_moved.location == jumped_pawn_loc
+      return true
+    else
+      false
+    end
+  end
+
+  def promote_pawn(location)
     puts "Pawn made it! [K]night or [Q]ueen?"
     begin
       to_piece = gets.chomp.strip.downcase
@@ -60,9 +81,9 @@ class Board
         raise ArgumentError.new("Sorry pawn cannot magically become a #{to_piece}")
       end
       if to_piece == "k"
-        self[from]= Knight.new(self[from].color, from, self)
+        self[location]= Knight.new(self[location].color, location, self)
       else
-        self[from]= Queen.new(self[from].color, from, self)
+        self[location]= Queen.new(self[location].color, location, self)
       end
     rescue ArgumentError => e
       puts e.message
@@ -83,6 +104,7 @@ class Board
         board_new[[x, y]].board = board_new
       end
     end
+    board_new.last_piece_moved = @last_piece_moved
     board_new
   end
 
@@ -180,6 +202,7 @@ class Board
   end
 
   def display
+    system("clear")
     print_colnumbers
     @rows.each_with_index do |row, index|
       print "#{index}"
@@ -197,6 +220,7 @@ class Board
   end
 
   def display_possible(possible_from)
+    system("clear")
     print_colnumbers
     @rows.each_with_index do |row, x|
       print "#{x}"
