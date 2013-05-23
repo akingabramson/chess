@@ -52,6 +52,14 @@ class Board
       self[[from[0], to[1]]] = nil
     end
 
+    if is_castling?(from, to)
+      if to[1] == 2
+        move!([from[0], 0], [from[0], 3])
+      else
+        move!([from[0], 7], [from[0], 5])
+      end
+    end
+
     self[to] = self[from]
     self[to].location = to
     self[from] = nil
@@ -71,6 +79,11 @@ class Board
     else
       false
     end
+  end
+
+  #can only castle from king
+  def is_castling?(from, to)
+    self[from].is_a?(King) && (from[1]-to[1]).abs>1
   end
 
   def promote_pawn(location)
@@ -185,10 +198,10 @@ class Board
   end
 
   def add_royalty
-    @rows[0][3] = King.new(:black, [0, 3], self)
-    @rows[7][4] = King.new(:white, [7, 4], self)
-    @rows[0][4] = Queen.new(:black, [0, 4], self)
+    @rows[0][3] = Queen.new(:black, [0, 3], self)
+    @rows[0][4] = King.new(:black, [0, 4], self)
     @rows[7][3] = Queen.new(:white, [7, 3], self)
+    @rows[7][4] = King.new(:white, [7, 4], self)
   end
 
   def []=(pos, piece)

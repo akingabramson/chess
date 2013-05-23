@@ -69,8 +69,10 @@ class Chess
 
 end
 
-b = Board.new
-b[[1,1]] = Pawn.new(:black, [1,1], b)
-b[[3,2]] = Pawn.new(:white, [3,2], b)
-b.move([1,1],[3,1])
-b.move([3,2],[2,1])
+Chess.human_vs_human
+
+# b = Board.new
+# b[[1,1]] = Pawn.new(:black, [1,1], b)
+# b[[3,2]] = Pawn.new(:white, [3,2], b)
+# b.move([1,1],[3,1])
+# b.move([3,2],[2,1])

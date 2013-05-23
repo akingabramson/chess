@@ -1,11 +1,18 @@
 class Piece
-  attr_accessor :color,:location, :name, :board
+  attr_accessor :color,:location, :name, :board, :move_count
+
 
   def initialize(color,location,name,board)
     @color = color
     @location = location
     @name = name
     @board = board
+    @move_count = 0
+  end
+
+  def location=(location)
+    @location = location
+    @move_count += 1
   end
 
   def deep_dup
@@ -85,18 +92,13 @@ class SteppingPiece < Piece
 end
 
 class Pawn < Piece
-  attr_accessor :move_count
 
   def initialize(color,location,board)
     super(color,location, "\u265F",board)
     @first_move = true
-    @move_count = 0
   end
 
-  def location=(location)
-    @location = location
-    @move_count += 1
-  end
+
 
   def kill_moves
     spaces = []
@@ -179,10 +181,32 @@ class King < SteppingPiece
   def initialize(color,location,board)
     super(color,location, "\u265A",board)
   end
+
   def possible_moves
-    super([[0,1], [0,-1], [-1,1], [-1,0], [-1,-1], [1,1], [1,0], [1,-1]])
+    transform_moves = super([[0,1], [0,-1], [-1,1], [-1,0], [-1,-1], [1,1], [1,0], [1,-1]])
+    transform_moves + castling_moves
   end
 
+  def castling_moves
+    return [] if @move_count > 0
+    row = @location[0]
+    spaces = []
+    if @board[[row,0]].is_a?(Rook) &&
+       @board[[row,0]].move_count == 0 &&
+       @board[[row,1]].nil? &&
+       @board[[row,2]].nil? &&
+       @board[[row,3]].nil?
+       spaces << [row,2]
+    end
+
+    if @board[[row,7]].is_a?(Rook) &&
+       @board[[row,7]].move_count == 0 &&
+       @board[[row,5]].nil? &&
+       @board[[row,6]].nil?
+       spaces << [row,6]
+    end
+    spaces
+  end
 
 end
 
@@ -195,6 +219,7 @@ class Rook < SlidingPiece
   def possible_moves
     super([[0,1],[0,-1],[1,0],[-1,0]])
   end
+
 end
 
 class Bishop < SlidingPiece
