@@ -1,5 +1,6 @@
 require 'colored'
 require './pieces.rb'
+require './computer_player.rb'
 require './human_player.rb'
 require './board.rb'
 
@@ -13,6 +14,15 @@ class Chess
     h2 = HumanPlayer.new(:black)
     g = Chess.new
     g.play(h1, h2, b)
+  end
+
+  def self.human_vs_computer
+    b = Board.new
+    b.setup
+    h = HumanPlayer.new(:white)
+    c = ComputerPlayer.new(:black, b)
+    g = Chess.new
+    g.play(h, c, b)
   end
 
   def play(player1, player2, board)
@@ -69,7 +79,8 @@ class Chess
 
 end
 
-Chess.human_vs_human
+Chess.human_vs_computer
+
 
 # b = Board.new
 # b[[1,1]] = Pawn.new(:black, [1,1], b)
